@@ -4,7 +4,9 @@ if(!defined('_PS_VERSION_')) {
     exit;
 }
 
-class MyBasicModule extends Module {
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+
+class MyBasicModule extends Module implements WidgetInterface {
 
     public function __construct() {
         $this->name = "mybasicmodule";
@@ -20,24 +22,20 @@ class MyBasicModule extends Module {
 
         parent::__construct();
 
-        $this->displayName = $this->l("My first module");
-        $this->description = $this->l("This is a teasting module");
+        $this->displayName = $this->l("My first module.");
+        $this->description = $this->l("Adds bot to your website.");
         $this->confirmUninstall = $this->l("Are you sure?");
+        $this->adminTemplateFile = 'views/templates/admin/configuration.tpl';
+        $this->frontTemplateFile = 'module:mybasicmodule/views/templates/hook/footer.tpl';
+
     }
 
     public function install(): Bool {
-        return parent::install() && $this->registerHook("registerGDPRConsent");
+        return parent::install() && $this->registerHook('displayFooter');
     }
 
     public function uninstall(): Bool {
         return parent::uninstall();
-    }
-
-    public function hookdisplayFooter($params) {
-        $this->context->smarty->assign([
-            "botPressId" => Configuration::get('BOT_PRESS_ID')
-        ]);
-        return $this->display(__FILE__, 'views/templates/hook/footer.tpl');
     }
   
     public function getContent() {
@@ -53,6 +51,17 @@ class MyBasicModule extends Module {
           'botPressId' => $botPressId,
           'message' => $message
         ]);
-        return $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
+        return $this->display(__FILE__, $this->adminTemplateFile);
+    }
+
+    public function renderWidget($hookName, array $configuration) {
+        $this->context->smarty->assign($this->getWidgetVariables($hookName, $configuration));
+        return $this->fetch($this->frontTemplateFile);
+    }
+
+    public function getWidgetVariables($hookName, array $configuration) {
+        return [
+            'botPressId' => Configuration::get('BOT_PRESS_ID')
+        ];
     }
 }
