@@ -1,0 +1,116 @@
+<div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        jQuery(document).ready(function ($) {
+            $(document).on('click', '#prepareBotpress', function (event) {
+                const options = {
+                    method: 'POST',
+                    url: "https://studio.botpress.cloud/api/" + $('#bot-id').val() + "/cleanup/document",
+                    headers: {
+                        'Authorization': $('#api-key').val(),
+                        //'Host': 'studio.botpress.cloud'
+                    }
+                };
+                axios.request(options)
+                    .then(response => {
+                        console.log(response);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            });
+            
+            $(document).on('click', '#getBotpressData', function (event) {
+                const options = {
+                    method: 'POST',
+                    url: "https://studio.botpress.cloud/api/" + $('#bot-id').val() + "/presign-url",
+                    headers: {
+                        'Authorization': $('#api-key').val(),
+                        //'Host': 'studio.botpress.cloud',
+                        'Content-Type': 'application/json',
+                    },
+                    data: {
+                    	filename: "products.txt",
+                        fileType: "document"
+                    }
+                };
+                axios.request(options)
+                    .then(response => {
+                        console.log(response);
+                        $('#botpress-data').val(JSON.stringify(response.data));
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            });
+            
+            $(document).on('click', '#informBotpress', function (event) {
+            	let fileName = $('#file-name').val();
+                fileName = fileName.split("/");
+                fileName = fileName[fileName.length-1];
+                const options = {
+                    method: 'PUT',
+                    url: "https://documents.botpress.cloud/api/" + $('#bot-id').val() + "/documents/url",
+                    headers: {
+                        'Authorization': $('#api-key').val(),
+                        //'Host': 'studio.botpress.cloud',
+                        'Content-Type': 'application/json'
+                    },
+                    data: {
+                    	url: $('#url').val() + "/" + $('#url-key').val(),
+                        name: fileName
+                    }
+                };
+                axios.request(options)
+                    .then(response => {
+                        console.log(response);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            });
+        });
+    </script>
+
+	{if $message != null}
+    	<div class="alert alert-success" role="alert">
+        	<p calss="alert-text">
+            	{$message}
+            </p>
+        </div>
+    {/if}
+
+	<form action="" method="post">
+    	<div class="form-group">
+        	<label class="form-control-label" for="bot-id">Bot Press id:</label>
+    		<input type="text" name="botPressId" class="form-control" id="bot-id" value="{$botPressId}" required></input>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" for="api-key">API key:</label>
+    		<input type="text" name="apiKey" class="form-control" id="api-key" value="{$apiKey}" required></input>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" for="botpress-data">Botpress data:</label>
+    		<input type="text" name="botpressData" class="form-control" id="botpress-data"></input>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" for="url">Url:</label>
+    		<input type="text" name="url" class="form-control" id="url" value="{$url}" ></input>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" for="url-key">Url Key:</label>
+    		<input type="text" name="urlKey" class="form-control" id="url-key" value="{$urlKey}" ></input>
+        </div>
+        <div class="form-group">
+            <label class="form-control-label" for="file-name">File Name:</label>
+    		<input type="text" name="fileName" class="form-control" id="file-name" value="{$fileName}" ></input>
+        </div>
+		<div class="form-group">
+        	<button type="submit" class="btn btn-primary" name="addChatbot">Dadaj czatbota</button>
+            <button type="button" class="btn btn-primary" id="prepareBotpress" name="prepareBotpress">prepareBotpress</button>
+            <button type="button" class="btn btn-primary" id="getBotpressData" name="getBotpressData">getBotpressData</button>
+            <button type="submit" class="btn btn-primary" name="sendFiles">sendFiles</button>
+            <button type="button" class="btn btn-primary" id="informBotpress" name="informBotpress">informBotpress</button>
+        </div>
+    </form>
+</div>
