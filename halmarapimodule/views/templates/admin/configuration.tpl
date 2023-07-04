@@ -23,6 +23,7 @@
 		<div class="form-group">
         	<button type="submit" class="btn btn-primary" name="testLogin">test login</button>
             <button type="submit" class="btn btn-primary" name="testPostOrder">test post order</button>
+            <button type="submit" class="btn btn-primary" name="testGetOrders">test get orders</button>
         </div>
     </form>
 </div>

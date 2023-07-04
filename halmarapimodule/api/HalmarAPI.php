@@ -10,8 +10,8 @@ class HalmarAPI {
     public function login($login, $password) {
         $body = json_encode(array(
     	    'username' => $login,
-          'password' => $password
-		    ));
+            'password' => $password
+		));
       	$headers = array(
             'Host: api.halmar.pl',
             'Content-Type: application/json',
@@ -25,10 +25,10 @@ class HalmarAPI {
         $response = curl_exec($curl);
           
         if ($response === false) {
-    		    throw new Exception('500 Internal Server Error.');
-	      }
+    		throw new Exception('500 Internal Server Error.');
+	    }
 
-		    $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
       	
         $responseData = json_decode($response, true);
 
@@ -42,23 +42,22 @@ class HalmarAPI {
     }
 
     public function postOrder($data) {
-        //$body = json_encode($data);
         $headers = array(
             'Host: api.halmar.pl',
             'Content-Type: application/json',
             'Content-Length: ' . strlen($body),
-            'Authorization: Bearer ' . $token
+            'Authorization: Bearer ' . $this->token
         );
         $curl = curl_init($this->url . '/api/order');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POST, true);
       	curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      	curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+      	curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         $response = curl_exec($curl);
           
         if ($response === false) {
-    		    throw new Exception('500 Internal Server Error.');
-	      }
+    		throw new Exception('500 Internal Server Error.');
+	    }
         
 		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
@@ -67,6 +66,68 @@ class HalmarAPI {
         if ($httpCode / 100 !== 2) {
             throw new Exception('Http code: '. $httpCode . '. Response: ' . $response);
         }
+    }
+  
+  	public function getOrders() {
+    	$headers = array(
+            'Host: api.halmar.pl',
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($body),
+            'Authorization: Bearer ' . $this->token
+        );
+        $curl = curl_init($this->url . '/api/order');
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPGET, true);
+      	curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        $response = curl_exec($curl);
+          
+        if ($response === false) {
+    		throw new Exception('500 Internal Server Error.');
+	    }
+        
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+      	curl_close($curl);
+
+        if ($httpCode / 100 !== 2) {
+            throw new Exception('Http code: '. $httpCode . '. Response: ' . $response);
+        }
+      
+      	return $response;
+    }
+
+    public function hasOrder($orderName, $date) {
+        $headers = array(
+            'Host: api.halmar.pl',
+            'Authorization: Bearer ' . $this->token
+        );
+        $curl = curl_init($this->url . '/api/order?date=' . $date);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPGET, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            throw new Exception('500 Internal Server Error.');
+        }
+
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        $responseData = json_decode($response, true);
+
+        curl_close($curl);
+
+        if ($httpCode / 100 !== 2) {
+            throw new Exception('Http code: '. $httpCode . '. Response: ' . $response);
+        }
+
+        foreach($responseData as $order) {
+            if ($order['OrderHeader']['VendorOrderNumber'] === $orderName) {
+                return true;
+            }
+        }
+
+        return false;
     }
   	
     public function getToken() {

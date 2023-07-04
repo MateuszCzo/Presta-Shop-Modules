@@ -51,15 +51,20 @@ class HalmarApiModule extends Module {
             Tools::getValue('password') &&
             Tools::getValue('data'))
         {
-            Configuration::updateValue('HALMAR_API_TEST_DATA', Tools::getValue('data'));
             $message = $this->testPostOrder(Tools::getValue('login'), Tools::getValue('password'), Tools::getValue('data'));
+        }
+      
+      	if (Tools::isSubmit('testGetOrders') && 
+            Tools::getValue('login') && 
+            Tools::getValue('password'))
+        {
+            $message = $this->testGetOrders(Tools::getValue('login'), Tools::getValue('password'));
         }
 
         $this->context->smarty->assign([
             'message' => $message,
             'login' => Tools::getValue('login'),
-            'password' => Tools::getValue('password'),
-            'data' => Configuration::get('HALMAR_API_TEST_DATA')
+            'password' => Tools::getValue('password')
         ]);
         return $this->display(__FILE__, $this->adminTemplateFile);
     }
@@ -80,6 +85,16 @@ class HalmarApiModule extends Module {
             $h->login($login, $password);
             $h->postOrder($data);
           	return 'Success.';
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+  
+  	private function testGetOrders($login, $password) {
+    	try {
+            $h = new HalmarAPI();
+            $h->login($login, $password);
+            return $h->getOrders();
         } catch (Exception $e) {
             return $e->getMessage();
         }
