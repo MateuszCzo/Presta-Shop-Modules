@@ -1,0 +1,4 @@
+Shop name: {shopName}
+User email: {email}
+User name: {firstName} {lastName}
+Order status: {orderStatus}

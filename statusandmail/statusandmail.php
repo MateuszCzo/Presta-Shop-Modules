@@ -4,6 +4,9 @@ if(!defined('_TB_VERSION_')) {
     exit;
 }
 
+include_once(dirname(__FILE__) . '/StatusModel.php');
+include_once(dirname(__FILE__) . '/SendMailModel.php');
+include_once(dirname(__FILE__) . '/StatusNamesModel.php');
 
 class StatusAndMail extends Module {
 
@@ -20,54 +23,54 @@ class StatusAndMail extends Module {
         $this->displayName = $this->l("Status and Mail.");
         $this->description = $this->l("Check status and send mail.");
         $this->adminTemplateFile = 'views/templates/admin/configuration.tpl';
-        $this->tableName = 'order_status2';
     }
 
     public function install(): Bool {
         return parent::install() && 
-            $this->createTable();
-    }
-
-    public function createTable() {
-        $sql = "
-            CREATE TABLE IF NOT EXISTS `" . _DB_PREFIX_ . "$this->tableName` (
-                `order_id` INT(10) NOT NULL,
-                `status` VARCHAR(255) NOT NULL
-            );
-        ";
-        return Db::getInstance()->execute($sql);
+        StatusModel::createTable();
     }
 
     public function uninstall(): Bool {
         return parent::uninstall() &&
-            $this->dropTable();
-    }
-
-    public function dropTable() {
-        $sql = "DROP TABLE IF EXISTS `" . _DB_PREFIX_ . "$this->tableName`";
-        return Db::getInstance()->execute($sql);
+        StatusModel::dropTable();
     }
   
     public function getContent() {
         $message = null;
       
-        if (Tools::isSubmit("addOrder") && 
-            Tools::getValue("orderId") && 
-            Tools::getValue("orderStatus"))
-        {
-            $message = $this->addOrder();
-        }
+        try{
+            if (Tools::isSubmit("addOrder") && 
+                Tools::getValue("orderId") && 
+                Tools::getValue("orderStatus"))
+            {
+                $message = StatusModel::addOrder(Tools::getValue("orderId"), Tools::getValue("orderStatus"));
+            }
 
-        if (Tools::isSubmit("getStatus") && 
-            Tools::getValue("orderId"))
-        {
-            $message = $this->getStatus();
-        }
+            if (Tools::isSubmit("getStatus") && 
+                Tools::getValue("orderId"))
+            {
+                $message = StatusModel::getStatus(Tools::getValue("orderId"));
+            }
 
-        if (Tools::isSubmit("sendMail") && 
-            Tools::getValue("orderId"))
-        {
-            $message = $this->sendMail();
+            if (Tools::isSubmit("changeStatus") && 
+                Tools::getValue("orderId") && 
+                Tools::getValue("orderStatus"))
+            {
+                $message = $this->changeStatus(Tools::getValue("orderId"), Tools::getValue("orderStatus"));
+            }
+
+            if (Tools::isSubmit("howManyOrders"))
+            {
+                $message = StatusModel::getCount();
+            }
+
+            if (Tools::isSubmit("deleteOrder") && 
+                Tools::getValue("orderId"))
+            {
+                $message = StatusModel::deleteOrder(Tools::getValue("orderId"));
+            }
+        } catch (Exception $e) {
+            $message = $e->getMessage();
         }
       
         $this->context->smarty->assign([
@@ -78,28 +81,17 @@ class StatusAndMail extends Module {
         return $this->display(__FILE__, $this->adminTemplateFile);
     }
 
-    public function addOrder() {
-        $data = array(
-            'order_id' => (int)Tools::getValue("orderId"),
-            'status' => Tools::getValue("orderStatus")
-        );
-      	$result = Db::getInstance()->insert(_DB_PREFIX_ . $this->tableName, $data);
-      	if ($result === false) {
-         	return "No data added to table.";
+    public function changeStatus($orderId, $status) {
+        if(!in_array($status, StatusNamesModel::STATUS_NAMES)) {
+            throw new Exception("Wrong status name.");
         }
-        return $result;
-    }
-
-    public function getStatus() {
-        $sql = "SELECT status FROM `" . _DB_PREFIX_ . "$this->tableName` WHERE order_id = " . (int)Tools::getValue("orderId");
-      	$result = Db::getInstance()->getValue($sql);
-      	if ($result === false) {
-          	return "No status found for the order.";
+        if (!StatusModel::checkIfExists($orderId)) {
+            throw new Exception('No order with given id');
         }
-        return $result;
-    }
-
-    public function sendMail() {
-        //todo send mail
+        if(StatusModel::getStatus($orderId) !== $status) {
+            StatusModel::changeStatus($orderId, $status);
+            return SendMailModel::sendMail($orderId, $status);
+        }
+        return 'status the same';
     }
 }
