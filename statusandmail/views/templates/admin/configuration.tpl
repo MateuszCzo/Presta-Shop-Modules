@@ -24,6 +24,7 @@
             <button type="submit" class="btn btn-primary" name="changeStatus">change order status</button>
             <button type="submit" class="btn btn-primary" name="deleteOrder">delete order</button>
             <button type="submit" class="btn btn-primary" name="howManyOrders">check orders quantity</button>
+            <button type="submit" class="btn btn-primary" name="downloadOrderStatus">run fun downloadOrderStatus</button>
         </div>
     </form>
 </div>
