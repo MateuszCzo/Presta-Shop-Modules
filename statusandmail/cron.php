@@ -1,16 +1,23 @@
 <?php
 
-include(dirname(__FILE__) . '/../config/config.inc.php');
+include(dirname(__FILE__) . '/../../config/config.inc.php');
 
-$statusAndMailModulePath = dirname(__FILE__) . '/statusandmail.php';
+$context = Context::getContext();
+$statusAndMailModule = Module::getInstanceByName('statusandmail');
+$filename = 'info/' . date('Y-m-d') . ' ' . date('H:i:s') . '.txt';
+$message = '';
 
-if (file_exists($statusAndMailModulePath)) {
-    include($statusAndMailModulePath);
-  	$statusAndMailModule = new StatusAndMail();
-	$statusAndMailModule->install();
-	$statusAndMailModule->downloadOrderStatus();
+if ($statusAndMailModule instanceof Module) {
+    $message .= $statusAndMailModule->processStatusUpdates();
 } else {
-    PrestaShopLogger::addLog('StatusAndMail module file not found.');
+    PrestaShopLogger::addLog('Something went wrong with statusandmail module.');
+    $message .= 'Something went wrong with statusandmail module.';
 }
+
+$file = fopen($filename, 'w');
+fwrite($file, $message);
+fclose($file);
+
+echo nl2br($message);
 
 ?>

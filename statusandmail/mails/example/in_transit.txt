@@ -1,8 +1,12 @@
+
 [/{shop_url}] 
 
 Hei {firstname} {lastname}, 
 
 Din ordre med referanse {order_name} er sendt. 
+
+Du kan spore din pakke ved å benytte følgende lenke: {followup}
+[/{followup}] 		 
 
 Du kan se ordren og laste ned faktura fra "Ordrehistorie"
 [/{history_url}] på kontoen din ved å klikke på "Min Konto"
